@@ -1,0 +1,66 @@
+#!/bin/bash
+
+BEAMNG_FOLDER="$HOME/.steam/steam/steamapps/compatdata/284160/pfx/drive_c/users/steamuser/AppData/Local/BeamNG.drive"
+CONFIG_FOLDER="$HOME/.config/beam-share"
+
+mkdir -p $CONFIG_FOLDER
+
+IP=$(cat $CONFIG_FOLDER/ip 2> /dev/null)
+if [ -z $IP ]; then
+    echo "Remote ip:"
+    read IP
+    echo $IP > $CONFIG_FOLDER/ip
+fi
+
+cd $BEAMNG_FOLDER
+
+VERSION=$(cat <(ls -l | grep ^d | rev | cut -d' ' -f1 | rev | sort) <(echo "quit") | fzf --prompt "Select BeamNG version")
+[ $VERSION = "quit" ] && quit
+
+cd $BEAMNG_FOLDER/$VERSION
+
+quit() {
+    killall ncat
+    exit
+}
+
+server() {
+    exit_code=0
+    while [ $exit_code = 0 ]; do
+        ncat -l -p 1235 | tar -xzf - 2> /dev/null
+        exit_code=$?
+        if [ $exit_code = 0 ]; then
+            echo "Recieved a car file"
+        fi
+    done
+}
+
+send() {
+    while true; do
+        echo "BeamNG car sharing utility"
+        echo "Press (s) to send a car to the remote pc"
+        echo "Press (Esc) to quit"
+        read -n 1 option
+        if [ $option = '\e' ]; then
+            quit
+        fi
+        if [ $option = 's' ]; then
+            CLASS=$(cat <(ls -l vehicles/ | grep ^d | rev | cut -d' ' -f1 | rev) <(echo "quit") | fzf --prompt "Select class")
+            [ $CLASS = "quit" ] && quit
+            CAR=$(cat <(ls vehicles/$CLASS/ | tr -d \' | rev | cut -d'.' -f'2-' | rev | sort | uniq) <(echo "quit") | fzf --prompt "Select car")
+            [ $CAR = "quit" ] && quit
+            tar -cf share_out.tar -T /dev/null
+            ls vehicles/$CLASS | grep "$CAR" | while read file; do
+                echo "$file"
+                tar -rf share_out.tar "vehicles/$CLASS/$file"
+            done
+
+            gzip -f share_out.tar
+            cat share_out.tar.gz | ncat $IP 1235
+        fi
+    done
+}
+
+server &
+send
+
