@@ -14,7 +14,7 @@ fi
 
 cd $BEAMNG_FOLDER
 
-VERSION=$(cat <(ls -l | grep ^d | rev | cut -d' ' -f1 | rev | sort) <(echo "quit") | fzf --prompt "Select BeamNG version")
+VERSION=$(cat <(ls -l | grep ^d | rev | cut -d' ' -f1 | rev | sort) <(echo "quit") | fzf --prompt "Select BeamNG version> ")
 [ $VERSION = "quit" ] && quit
 
 cd $BEAMNG_FOLDER/$VERSION
@@ -40,15 +40,15 @@ send() {
         echo "BeamNG car sharing utility"
         echo "Press (s) to send a car to the remote pc"
         echo "Press (Esc) to quit"
-        read -n 1 option
-        if [ $option = '\e' ]; then
+        read -rsn1 option
+        if [ $option = $'\e' ]; then
             quit
         fi
         if [ $option = 's' ]; then
-            CLASS=$(cat <(ls -l vehicles/ | grep ^d | rev | cut -d' ' -f1 | rev) <(echo "quit") | fzf --prompt "Select class")
-            [ $CLASS = "quit" ] && quit
-            CAR=$(cat <(ls vehicles/$CLASS/ | tr -d \' | rev | cut -d'.' -f'2-' | rev | sort | uniq) <(echo "quit") | fzf --prompt "Select car")
-            [ $CAR = "quit" ] && quit
+            CLASS=$(cat <(ls -l vehicles/ | grep ^d | rev | cut -d' ' -f1 | rev) <(echo "quit") | fzf --prompt "Select class> ")
+            [[ $CLASS = "quit" ]] && quit
+            CAR=$(cat <(ls vehicles/$CLASS/ | tr -d \' | rev | cut -d'.' -f'2-' | rev | sort | uniq) <(echo "quit") | fzf --prompt "Select car> ")
+            [[ $CAR = "quit" ]] && quit
             tar -cf share_out.tar -T /dev/null
             ls vehicles/$CLASS | grep "$CAR" | while read file; do
                 echo "$file"
