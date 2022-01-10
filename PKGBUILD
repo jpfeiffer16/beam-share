@@ -1,5 +1,5 @@
 pkgname=beam-share
-pkgver=1.0.0
+pkgver=1.0.2
 pkgrel=1
 arch=('i686' 'x86_64')
 license=("GPL3")
@@ -9,11 +9,6 @@ depends=('nmap' 'fzf')
 prepare() {
 	ln -snf "$startdir" "$srcdir/$pkgname"
 }
-
-# build() {
-# 	# cd "$srcdir"
-# 	make install
-# }
 
 package() {
     cd "$pkgname"
