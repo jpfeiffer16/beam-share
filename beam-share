@@ -12,6 +12,8 @@ if [ -z $IP ]; then
     echo $IP > $CONFIG_FOLDER/ip
 fi
 
+echo "Using ip: $IP"
+
 cd $BEAMNG_FOLDER
 
 quit() {
